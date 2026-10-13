@@ -1,4 +1,11 @@
+"use client";
+
+import { PromptPanel } from "@/components/studio/prompt-panel";
+import type { GenerateInput } from "@/types";
 export function Workspace() {
+    const handleGenerate = (input: GenerateInput) => {
+    console.log("Submitted:", input);
+  };
   return (
     <div className="grid min-h-screen grid-cols-1 bg-zinc-950 text-zinc-100 lg:grid-cols-[380px_1fr]">
       <aside className="border-b border-zinc-800 lg:border-b-0 lg:border-r">
@@ -6,7 +13,7 @@ export function Workspace() {
           <h1 className="text-lg font-semibold">GenUI Studio</h1>
           <p className="text-xs text-zinc-500">AI component generator & a11y auditor</p>
         </header>
-        <div className="p-6 text-sm text-zinc-400">Prompt panel goes here</div>
+       <PromptPanel isLoading={false} onSubmit={handleGenerate} />
       </aside>
 
       <main className="p-6">
