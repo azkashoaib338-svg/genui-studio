@@ -16,3 +16,16 @@ export const generatedComponentSchema = z.object({
   description: z.string().describe("One sentence describing the component"),
   code: z.string().describe("Complete TSX source of the component"),
 });
+export const a11yReportSchema = z.object({
+  score: z.number().min(0).max(100),
+  summary: z.string(),
+  issues: z.array(
+    z.object({
+      severity: z.enum(["critical", "serious", "moderate", "minor"]),
+      category: z.enum(["aria", "contrast", "semantics", "keyboard", "other"]),
+      message: z.string(),
+      suggestion: z.string(),
+    }),
+  ),
+  passed: z.array(z.string()),
+});

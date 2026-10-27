@@ -22,3 +22,19 @@ export interface GeneratedComponent {
 export type ActionResult<T> =
   | { ok: true; data: T }
   | { ok: false; error: string };
+  export type A11ySeverity = "critical" | "serious" | "moderate" | "minor";
+export type A11yCategory = "aria" | "contrast" | "semantics" | "keyboard" | "other";
+
+export interface A11yIssue {
+  severity: A11ySeverity;
+  category: A11yCategory;
+  message: string;
+  suggestion: string;
+}
+
+export interface A11yReport {
+  score: number; // 0-100
+  summary: string;
+  issues: A11yIssue[];
+  passed: string[];
+}

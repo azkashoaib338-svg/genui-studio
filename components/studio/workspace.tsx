@@ -1,23 +1,41 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
-import { generateComponent } from "@/app/actions/generate";
+import { auditComponent, generateComponent } from "@/app/actions/generate";
 import { PromptPanel } from "@/components/studio/prompt-panel";
-import type { GenerateInput, GeneratedComponent } from "@/types";
+import type { A11yReport, GenerateInput, GeneratedComponent } from "@/types";
 import { CodeView } from "@/components/studio/code-view";
 import { PreviewFrame } from "@/components/studio/preview-frame";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AuditReport } from "@/components/studio/audit-report";
 
 export function Workspace() {
   const [component, setComponent] = useState<GeneratedComponent | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [report, setReport] = useState<A11yReport | null>(null);
+const [isAuditing, setIsAuditing] = useState(false);
+const [auditError, setAuditError] = useState<string | null>(null);
   const [dark, setDark] = useState(true);
 
+  const runAudit = useCallback(async (code: string) => {
+  setIsAuditing(true);
+  setAuditError(null);
+  try {
+    const res = await auditComponent(code);
+    if (res.ok) setReport(res.data);
+    else setAuditError(res.error);
+  } catch {
+    setAuditError("Could not reach the server.");
+  } finally {
+    setIsAuditing(false);
+  }
+}, []); 
   const handleGenerate = async (input: GenerateInput) => {
     setIsGenerating(true);
     setError(null);
+    setReport(null);
 
     try {
       const res = await generateComponent(input);
@@ -25,6 +43,7 @@ export function Workspace() {
       if (res.ok) {
         setComponent(res.data);
         setDark(input.darkMode);
+        void runAudit(res.data.code);
       } else {
         setError(res.error);
       }
@@ -67,6 +86,7 @@ export function Workspace() {
   <TabsList>
     <TabsTrigger value="preview">Preview</TabsTrigger>
     <TabsTrigger value="code">Code</TabsTrigger>
+    <TabsTrigger value="a11y">Accessibility{report ? ` · ${report.score}` : ""}</TabsTrigger>
   </TabsList>
   <TabsContent value="preview" className="mt-4">
     <PreviewFrame code={component.code} dark={dark} />
@@ -74,6 +94,14 @@ export function Workspace() {
   <TabsContent value="code" className="mt-4">
     <CodeView code={component.code} />
   </TabsContent>
+  <TabsContent value="a11y" className="mt-4">
+  <AuditReport
+    report={report}
+    isLoading={isAuditing}
+    error={auditError}
+    onRetry={() => runAudit(component.code)}
+  />
+</TabsContent>
 </Tabs>
           </div>
         ) : (
